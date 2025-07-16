@@ -1,4 +1,4 @@
--- SQL Project - Library Management System N2
+-- SQL Project - Library Management System 
 
 SELECT * FROM books;
 SELECT * FROM branch;
