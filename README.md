@@ -488,6 +488,42 @@ WHERE isbn = '978-0-375-41398-8'
 
 ```
 
+**Task 20: Rank the Top Borrowers in the Library**  
+Create a query to identify the top borrowers in the library by the total number of books issued. Rank each member using a window function so that members with the 
+same number of books issued share the same rank.
+
+```sql
+SELECT 
+    m.member_id,
+    m.member_name,
+    COUNT(ist.issued_id) AS total_books_issued,
+    RANK() OVER (ORDER BY COUNT(ist.issued_id) DESC) AS borrow_rank
+FROM members m
+JOIN issued_status ist ON m.member_id = ist.issued_member_id
+GROUP BY m.member_id, m.member_name
+ORDER BY borrow_rank;
+```
+
+**Task 21: Analyze Return Delay Trends for Each Member**  
+Write a query that calculates how many days each member takes to return books, and compare the return time with their previous return using a window function. Use 
+this to analyze improvement or delay trends in return behavior.
+
+```sql
+SELECT 
+    m.member_id,
+    m.member_name,
+    rs.return_date,
+    ist.issued_date,
+    (rs.return_date - ist.issued_date) AS return_days,
+    LAG((rs.return_date - ist.issued_date)) OVER (
+        PARTITION BY m.member_id ORDER BY rs.return_date
+    ) AS prev_return_days
+FROM members m
+JOIN issued_status ist ON m.member_id = ist.issued_member_id
+JOIN return_status rs ON ist.issued_id = rs.issued_id
+ORDER BY m.member_id, rs.return_date;
+```
+
 ## Reports
 
 - **Database Schema**: Detailed table structures and relationships.
@@ -501,35 +537,35 @@ Below are the key insights derived from advanced SQL queries performed on the Li
 
 ### 🔹 1. Top Borrowers Ranking
 
-> **Insight:** Members `C108`, `C107`, and `C105` ranked as the top three most active borrowers, with `C108` issuing 15 books in total. These high-engagement users could be prioritized for loyalty or referral programs.
+**Insight:** Members `C108`, `C107`, and `C105` ranked as the top three most active borrowers, with `C108` issuing 15 books in total. These high-engagement users could be prioritized for loyalty or referral programs.
 
 *SQL Techniques Used:* `JOIN`, `GROUP BY`, `RANK() OVER(...)`, `ORDER BY`
 
 
 ### 🔹 2. Return Delay Trends by Member
 
-> **Insight:** On average, members return books in 10–14 days. However, some members show increasing return delays over time, as highlighted by the `LAG()` function. This signals the need for timely reminders or return penalties.
+**Insight:** On average, members return books in 10–14 days. However, some members show increasing return delays over time, as highlighted by the `LAG()` function. This signals the need for timely reminders or return penalties.
 
 *SQL Techniques Used:* `JOIN`, `DATE` arithmetic, `LAG() OVER(PARTITION BY...)`
 
 
 ### 🔹 3. Branch Revenue Performance
 
-> **Insight:** Branch `B102` generated ₹5,200 in revenue from 220 book issues in Q2 2024, making it the top-performing location. It outperformed others by 35% in total rentals.
+**Insight:** Branch `B102` generated ₹5,200 in revenue from 220 book issues in Q2 2024, making it the top-performing location. It outperformed others by 35% in total rentals.
 
 *SQL Techniques Used:* Aggregations, `GROUP BY`, `CASE`
 
 
 ### 🔹 4. Book Category Demand
 
-> **Insight:** Fiction and Mystery categories account for over 40% of total rentals. These genres are particularly popular among members aged 20–35, indicating demand-driven inventory planning.
+**Insight:** Fiction and Mystery categories account for over 40% of total rentals. These genres are particularly popular among members aged 20–35, indicating demand-driven inventory planning.
 
 *SQL Techniques Used:* Joins, filtering by genre, age-based segmentation with `CASE`
 
 
 ### 🔹 5. Employee Efficiency
 
-> **Insight:** Staff members `E102` and `E105` processed the highest number of book issues and returns. This indicates high task efficiency and workload management in Branch `B102`.
+**Insight:** Staff members `E102` and `E105` processed the highest number of book issues and returns. This indicates high task efficiency and workload management in Branch `B102`.
 
 *SQL Techniques Used:* `JOIN`, `GROUP BY`, performance ratio calculations
 
